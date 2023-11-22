@@ -5,36 +5,47 @@ using Microsoft.EntityFrameworkCore;
 [Route("api/[controller]")]
 public class StudentController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IApplicationDbContext _context;
+    private readonly IStudentRepository _studentRepository;
 
-    public StudentController(ApplicationDbContext context)
+    public StudentController(IApplicationDbContext context,
+    IStudentRepository studentRepository)
     {
         _context = context;
+        _studentRepository = studentRepository;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Student>> Get()
+    public async Task<IEnumerable<Student>> Get()
     {
-        return _context.Students.ToList();
+        return await  _studentRepository.GetAllStudents();
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Student> Get(int id)
+    public async Task<IActionResult> Get(int id)
     {
-        var aluno = _context.Students.Find(id);
+        var aluno = _studentRepository.GetStudentById(id);
         if (aluno == null)
         {
             return NotFound();
         }
-        return aluno;
+        return Ok(aluno);
     }
 
     [HttpPost]
-    public ActionResult<Student> Post([FromBody] Student student)
+    public async Task<IActionResult> Post([FromBody] Student student)
     {
-        _context.Students.Add(student);
+        _studentRepository.AddStudent(student);
         _context.SaveChanges();
-        return CreatedAtAction(nameof(Get), new { id = student.Id }, student);
+         try
+    {
+        await _context.SaveChangesAsync();
+        return Ok(student);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, "Internal server error");
+    }
     }
 
     [HttpPut("{id}")]
@@ -45,7 +56,7 @@ public class StudentController : ControllerBase
             return BadRequest();
         }
 
-        _context.Entry(aluno).State = EntityState.Modified;
+        _studentRepository.UpdateStudent(aluno);
         _context.SaveChanges();
         return NoContent();
     }
@@ -59,7 +70,7 @@ public class StudentController : ControllerBase
             return NotFound();
         }
 
-        _context.Students.Remove(aluno);
+        _studentRepository.DeleteStudent(id);
         _context.SaveChanges();
         return NoContent();
     }

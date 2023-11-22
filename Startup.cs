@@ -11,11 +11,20 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+        try{
+            services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(Configuration.GetConnectionString(@"Server=WINAPLDCOFJ0HBR;Database=College;Trusted_Connection=True;")));
+        
         services.AddHttpContextAccessor();
         services.AddScoped<IStudentRepository, StudentRepository>();
-
+        services.AddControllers();
+        services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+        }
+        catch(Exception ex){
+            Console.WriteLine(ex.ToString());
+            throw;
+        }
+        
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
