@@ -1,17 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/[controller]")]
 public class StudentController : ControllerBase
 {
-    private readonly IApplicationDbContext _context;
     private readonly IStudentRepository _studentRepository;
 
-    public StudentController(IApplicationDbContext context,
-    IStudentRepository studentRepository)
+    public StudentController(IStudentRepository studentRepository)
     {
-        _context = context;
         _studentRepository = studentRepository;
     }
 
@@ -36,10 +32,8 @@ public class StudentController : ControllerBase
     public async Task<IActionResult> Post([FromBody] Student student)
     {
         _studentRepository.AddStudent(student);
-        _context.SaveChanges();
          try
     {
-        await _context.SaveChangesAsync();
         return Ok(student);
     }
     catch (Exception ex)
@@ -57,21 +51,19 @@ public class StudentController : ControllerBase
         }
 
         _studentRepository.UpdateStudent(aluno);
-        _context.SaveChanges();
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var aluno = _context.Students.Find(id);
+        var aluno = _studentRepository.GetStudentById(id);
         if (aluno == null)
         {
             return NotFound();
         }
 
         _studentRepository.DeleteStudent(id);
-        _context.SaveChanges();
         return NoContent();
     }
 }

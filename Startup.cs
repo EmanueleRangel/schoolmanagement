@@ -12,13 +12,14 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         try{
+            services.AddMvc();
             services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(Configuration.GetConnectionString(@"Server=WINAPLDCOFJ0HBR;Database=College;Trusted_Connection=True;")));
-        
-        services.AddHttpContextAccessor();
-        services.AddScoped<IStudentRepository, StudentRepository>();
-        services.AddControllers();
-        services.AddScoped<IApplicationDbContext, ApplicationDbContext>();
+       options.UseSqlServer(
+           "Server=(localdb)\\mssqllocaldb;Database=StudentManagement;Trusted_Connection=True;MultipleActiveResultSets=true"));
+            services.AddSingleton<IStudentRepository, StudentRepository>();
+            services.AddControllers();
+            services.AddControllers();
+            services.AddTransient<IApplicationDbContext, ApplicationDbContext>();
         }
         catch(Exception ex){
             Console.WriteLine(ex.ToString());
